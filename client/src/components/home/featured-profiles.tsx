@@ -11,17 +11,17 @@ const FeaturedProfiles: FC = () => {
   });
 
   return (
-    <section className="mb-12 px-4">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold">Featured Profiles</h2>
+    <section className="mb-12 container mx-auto px-4 md:px-6">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl font-semibold">Featured Profiles</h2>
         <Link href="/#marketplace">
-          <a className="text-primary hover:text-primary-400 text-sm font-medium flex items-center">
+          <span className="text-gray-900 hover:text-gray-600 text-sm font-medium flex items-center">
             View All <i className="ri-arrow-right-line ml-1"></i>
-          </a>
+          </span>
         </Link>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {isLoading ? (
           // Loading skeletons
           Array(3).fill(0).map((_, i) => (
@@ -36,8 +36,8 @@ const FeaturedProfiles: FC = () => {
             />
           ))
         ) : (
-          <div className="col-span-3 text-center py-12">
-            <p className="text-gray-400">No featured profiles available at the moment.</p>
+          <div className="col-span-3 text-center py-12 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <p className="text-gray-500">No featured profiles available at the moment.</p>
           </div>
         )}
       </div>

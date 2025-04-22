@@ -115,23 +115,23 @@ const ProfileCard: FC<ProfileCardProps> = ({ profile, featured = false, compact 
   if (compact) {
     return (
       <article 
-        className={`bg-[#1E1E22] rounded-xl overflow-hidden border border-gray-800 transition-all duration-300 ${isHovered ? 'transform -translate-y-1 shadow-lg' : ''}`}
+        className={`bg-white rounded-xl overflow-hidden border border-gray-200 transition-all duration-300 ${isHovered ? 'transform -translate-y-1 shadow-md' : 'shadow-sm'}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="relative">
-          <div className="w-full h-32 bg-gradient-to-r from-gray-800 to-gray-900"></div>
+          <div className="w-full h-32 bg-gradient-to-r from-purple-100 to-blue-50"></div>
           {platform && (
-            <div className="absolute top-2 right-2 bg-black bg-opacity-70 rounded-full px-2 py-1 flex items-center">
+            <div className="absolute top-2 right-2 bg-white shadow-sm rounded-full px-2 py-1 flex items-center">
               <SocialPlatformIcon platform={platform.name} size="sm" className="mr-1" />
-              <span className="text-xs font-medium">{platform.name}</span>
+              <span className="text-xs font-medium text-gray-800">{platform.name}</span>
             </div>
           )}
         </div>
         
         <div className="p-4">
-          <h3 className="font-semibold text-base mb-1">{profile.title}</h3>
-          <div className="flex items-center text-gray-400 text-xs mb-3">
+          <h3 className="font-semibold text-base mb-1 text-gray-900">{profile.title}</h3>
+          <div className="flex items-center text-gray-500 text-xs mb-3">
             <span className="flex items-center mr-3">
               <i className="ri-user-line mr-1"></i> {formatFollowers(profile.followers)}
             </span>
@@ -141,12 +141,12 @@ const ProfileCard: FC<ProfileCardProps> = ({ profile, featured = false, compact 
           </div>
           
           <div className="flex justify-between mb-4">
-            <span className="text-gray-400 text-xs">Category: {category?.name || "Unknown"}</span>
-            <span className="text-green-500 font-semibold">{formatPrice(profile.price)}</span>
+            <span className="text-gray-500 text-xs">Category: {category?.name || "Unknown"}</span>
+            <span className="text-gray-900 font-semibold">{formatPrice(profile.price)}</span>
           </div>
           
           <Link href={`/profile/${profile.id}`}>
-            <Button variant="outline" className="w-full bg-[#121214] border-gray-700 hover:bg-[#2A2A30]">
+            <Button variant="outline" className="w-full bg-white border-gray-200 hover:bg-gray-50 text-gray-900">
               View Details
             </Button>
           </Link>
@@ -157,26 +157,26 @@ const ProfileCard: FC<ProfileCardProps> = ({ profile, featured = false, compact 
 
   return (
     <article 
-      className={`bg-[#1E1E22] rounded-xl overflow-hidden border border-gray-800 transition-all duration-300 ${isHovered ? 'transform -translate-y-1 shadow-lg' : ''}`}
+      className={`bg-white rounded-xl overflow-hidden border border-gray-200 transition-all duration-300 ${isHovered ? 'transform -translate-y-1 shadow-md' : 'shadow-sm'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="relative">
-        <div className="w-full h-40 bg-gradient-to-r from-gray-800 to-gray-900"></div>
+        <div className="w-full h-40 bg-gradient-to-r from-purple-100 to-blue-50"></div>
         {platform && (
-          <div className="absolute top-3 right-3 bg-black bg-opacity-70 rounded-full px-3 py-1 flex items-center">
+          <div className="absolute top-3 right-3 bg-white shadow-sm rounded-full px-3 py-1 flex items-center">
             <SocialPlatformIcon platform={platform.name} className="mr-1" />
-            <span className="text-xs font-medium">{platform.name}</span>
+            <span className="text-xs font-medium text-gray-800">{platform.name}</span>
           </div>
         )}
         {featured && (
-          <div className="absolute top-3 left-3 bg-primary rounded-full px-3 py-1">
-            <span className="text-xs font-medium">Featured</span>
+          <div className="absolute top-3 left-3 bg-black rounded-full px-3 py-1">
+            <span className="text-xs font-medium text-white">Featured</span>
           </div>
         )}
         {profile.isHot && (
           <div className="absolute top-3 left-3 bg-red-500 rounded-full px-3 py-1">
-            <span className="text-xs font-medium">Hot</span>
+            <span className="text-xs font-medium text-white">Hot</span>
           </div>
         )}
       </div>
@@ -184,8 +184,8 @@ const ProfileCard: FC<ProfileCardProps> = ({ profile, featured = false, compact 
       <div className="p-5">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="font-semibold text-lg mb-1">{profile.title}</h3>
-            <div className="flex items-center text-gray-400 text-sm">
+            <h3 className="font-semibold text-lg mb-1 text-gray-900">{profile.title}</h3>
+            <div className="flex items-center text-gray-500 text-sm">
               <span className="flex items-center mr-3">
                 <i className="ri-user-line mr-1"></i> {formatFollowers(profile.followers)}
               </span>
@@ -194,35 +194,35 @@ const ProfileCard: FC<ProfileCardProps> = ({ profile, featured = false, compact 
               </span>
             </div>
           </div>
-          <span className="text-xl font-semibold text-green-500">{formatPrice(profile.price)}</span>
+          <span className="text-xl font-semibold text-gray-900">{formatPrice(profile.price)}</span>
         </div>
         
         <div className="space-y-3 mb-5">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Category</span>
-            <span className="font-medium">{category?.name || "Unknown"}</span>
+            <span className="text-gray-500">Category</span>
+            <span className="font-medium text-gray-900">{category?.name || "Unknown"}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Age</span>
-            <span className="font-medium">{profile.age}</span>
+            <span className="text-gray-500">Age</span>
+            <span className="font-medium text-gray-900">{profile.age}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Weekly posts</span>
-            <span className="font-medium">{profile.weeklyPosts}</span>
+            <span className="text-gray-500">Weekly posts</span>
+            <span className="font-medium text-gray-900">{profile.weeklyPosts}</span>
           </div>
         </div>
         
         <div className="flex space-x-3">
           <Link href={`/profile/${profile.id}`} className="flex-1">
-            <Button className="w-full">View Details</Button>
+            <Button className="w-full bg-black hover:bg-gray-800 text-white">View Details</Button>
           </Link>
           <Button 
             variant="outline" 
             size="icon" 
-            className={`flex items-center justify-center w-10 h-10 rounded-lg border ${isInWatchlist ? 'border-primary text-primary' : 'border-gray-700 hover:border-primary'}`}
+            className={`flex items-center justify-center w-10 h-10 rounded-md border ${isInWatchlist ? 'border-black text-black' : 'border-gray-200 hover:border-gray-400'}`}
             onClick={toggleWatchlist}
           >
-            <Heart className={`h-5 w-5 ${isInWatchlist ? 'fill-primary' : ''}`} />
+            <Heart className={`h-5 w-5 ${isInWatchlist ? 'fill-black' : ''}`} />
           </Button>
         </div>
       </div>

@@ -62,7 +62,7 @@ const MarketplaceSection: FC = () => {
           <Button 
             variant="outline" 
             size="icon" 
-            className="w-10 h-10 rounded-lg bg-[#1E1E22] border-gray-700"
+            className="w-10 h-10 rounded-md bg-white border-gray-200 shadow-sm hover:border-gray-300"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
@@ -85,7 +85,7 @@ const MarketplaceSection: FC = () => {
               <Button 
                 key={i}
                 variant={currentPage === pageNum ? "default" : "outline"}
-                className={`w-10 h-10 ${currentPage !== pageNum && "bg-[#1E1E22] border-gray-700"}`}
+                className={`w-10 h-10 ${currentPage === pageNum ? "bg-black text-white" : "bg-white border-gray-200 hover:border-gray-300 shadow-sm"}`}
                 onClick={() => handlePageChange(pageNum)}
               >
                 {pageNum}
@@ -95,10 +95,10 @@ const MarketplaceSection: FC = () => {
           
           {totalPages > 5 && currentPage < totalPages - 2 && (
             <>
-              <span className="w-10 h-10 flex items-center justify-center">...</span>
+              <span className="w-10 h-10 flex items-center justify-center text-gray-500">...</span>
               <Button 
                 variant="outline"
-                className="w-10 h-10 bg-[#1E1E22] border-gray-700"
+                className="w-10 h-10 bg-white border-gray-200 shadow-sm hover:border-gray-300"
                 onClick={() => handlePageChange(totalPages)}
               >
                 {totalPages}
@@ -109,7 +109,7 @@ const MarketplaceSection: FC = () => {
           <Button 
             variant="outline" 
             size="icon" 
-            className="w-10 h-10 rounded-lg bg-[#1E1E22] border-gray-700"
+            className="w-10 h-10 rounded-md bg-white border-gray-200 shadow-sm hover:border-gray-300"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
@@ -121,16 +121,16 @@ const MarketplaceSection: FC = () => {
   };
 
   return (
-    <section className="mb-12 px-4" id="marketplace">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold">Browse All Profiles</h2>
-        <div className="flex space-x-2">
+    <section className="mb-12 container mx-auto px-4 md:px-6" id="marketplace">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl font-semibold">Browse All Profiles</h2>
+        <div className="flex space-x-3">
           <div className="relative hidden md:block">
             <Select value={sortOrder} onValueChange={setSortOrder}>
-              <SelectTrigger className="bg-[#1E1E22] border-gray-700 rounded-lg py-2 px-4 text-sm w-44">
+              <SelectTrigger className="bg-white border-gray-200 rounded-md py-2 px-4 text-sm w-44 shadow-sm">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent className="bg-[#1E1E22] border-gray-700">
+              <SelectContent className="bg-white border-gray-200">
                 <SelectItem value="newest">Newest First</SelectItem>
                 <SelectItem value="price-low">Price: Low to High</SelectItem>
                 <SelectItem value="price-high">Price: High to Low</SelectItem>
@@ -139,7 +139,7 @@ const MarketplaceSection: FC = () => {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" size="icon" className="bg-[#1E1E22] border-gray-700">
+          <Button variant="outline" size="icon" className="bg-white border-gray-200 shadow-sm hover:border-gray-300">
             <Filter className="h-4 w-4" />
           </Button>
         </div>

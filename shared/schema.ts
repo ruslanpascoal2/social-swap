@@ -1,6 +1,7 @@
-import { pgTable, text, serial, integer, boolean, timestamp, doublePrecision } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, doublePrecision, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // Users table
 export const users = pgTable("users", {
@@ -12,6 +13,13 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const usersRelations = relations(users, ({ many }) => ({
+  profiles: many(profiles),
+  watchlist: many(watchlist),
+  sentMessages: many(messages, { relationName: "sender" }),
+  receivedMessages: many(messages, { relationName: "receiver" }),
+}));
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -28,6 +36,10 @@ export const platforms = pgTable("platforms", {
   iconColor: text("icon_color").notNull(),
 });
 
+export const platformsRelations = relations(platforms, ({ many }) => ({
+  profiles: many(profiles),
+}));
+
 export const insertPlatformSchema = createInsertSchema(platforms).pick({
   name: true,
   iconClass: true,
@@ -39,6 +51,10 @@ export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
 });
+
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  profiles: many(profiles),
+}));
 
 export const insertCategorySchema = createInsertSchema(categories).pick({
   name: true,
@@ -63,6 +79,23 @@ export const profiles = pgTable("profiles", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const profilesRelations = relations(profiles, ({ one, many }) => ({
+  user: one(users, {
+    fields: [profiles.userId],
+    references: [users.id],
+  }),
+  platform: one(platforms, {
+    fields: [profiles.platformId],
+    references: [platforms.id],
+  }),
+  category: one(categories, {
+    fields: [profiles.categoryId],
+    references: [categories.id],
+  }),
+  watchlist: many(watchlist),
+  messages: many(messages),
+}));
+
 export const insertProfileSchema = createInsertSchema(profiles).omit({
   id: true,
   createdAt: true,
@@ -74,7 +107,22 @@ export const watchlist = pgTable("watchlist", {
   userId: integer("user_id").notNull().references(() => users.id),
   profileId: integer("profile_id").notNull().references(() => profiles.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    userProfileIdx: uniqueIndex("user_profile_idx").on(table.userId, table.profileId),
+  };
 });
+
+export const watchlistRelations = relations(watchlist, ({ one }) => ({
+  user: one(users, {
+    fields: [watchlist.userId],
+    references: [users.id],
+  }),
+  profile: one(profiles, {
+    fields: [watchlist.profileId],
+    references: [profiles.id],
+  }),
+}));
 
 export const insertWatchlistSchema = createInsertSchema(watchlist).omit({
   id: true,
@@ -92,6 +140,23 @@ export const messages = pgTable("messages", {
   read: boolean("read").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  sender: one(users, {
+    fields: [messages.fromUserId],
+    references: [users.id],
+    relationName: "sender",
+  }),
+  receiver: one(users, {
+    fields: [messages.toUserId],
+    references: [users.id],
+    relationName: "receiver",
+  }),
+  profile: one(profiles, {
+    fields: [messages.profileId],
+    references: [profiles.id],
+  }),
+}));
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,

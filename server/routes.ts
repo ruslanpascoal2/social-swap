@@ -9,8 +9,10 @@ import {
   insertMessageSchema,
   Profile,
   Platform,
-  Category
+  Category,
+  profiles
 } from "@shared/schema";
+import { db } from "./db";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -20,6 +22,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize default data and seed the database
   await initializeData();
   await seedDatabase();
+  
+  // Recreate profiles if needed - update this to true to force regeneration
+  const recreateProfiles = true;
+  if (recreateProfiles) {
+    try {
+      // Delete existing profiles
+      await db.delete(profiles);
+      console.log("Deleted existing profiles for recreation");
+      // Recreate profiles
+      await seedDatabase();
+    } catch (error) {
+      console.error("Error recreating profiles:", error);
+    }
+  }
 
   // Platform routes
   app.get("/api/platforms", async (req, res) => {
@@ -30,6 +46,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to retrieve platforms" });
     }
   });
+  
+  app.get("/api/platforms/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid platform ID" });
+      }
+      
+      const allPlatforms = await storage.getAllPlatforms();
+      const platform = allPlatforms.find(p => p.id === id);
+      
+      if (!platform) {
+        return res.status(404).json({ message: "Platform not found" });
+      }
+      
+      res.json(platform);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to retrieve platform" });
+    }
+  });
 
   // Categories routes
   app.get("/api/categories", async (req, res) => {
@@ -38,6 +74,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(categories);
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve categories" });
+    }
+  });
+  
+  app.get("/api/categories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid category ID" });
+      }
+      
+      const allCategories = await storage.getAllCategories();
+      const category = allCategories.find(c => c.id === id);
+      
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      
+      res.json(category);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to retrieve category" });
     }
   });
 

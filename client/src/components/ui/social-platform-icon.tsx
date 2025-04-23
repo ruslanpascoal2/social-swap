@@ -12,6 +12,10 @@ const SocialPlatformIcon: FC<SocialPlatformIconProps> = ({
   className = ""
 }) => {
   const getIconClass = () => {
+    if (!platform) {
+      return "ri-global-line text-gray-400";
+    }
+    
     switch (platform.toLowerCase()) {
       case "instagram":
         return "ri-instagram-line text-pink-500";

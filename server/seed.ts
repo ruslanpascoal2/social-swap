@@ -18,33 +18,52 @@ async function hashPassword(password: string) {
 export async function seedDatabase() {
   console.log("Seeding database...");
   
-  // Check if we already have data
-  const existingUsers = await db.select().from(users);
-  if (existingUsers.length > 0) {
-    console.log("Database already has users, skipping seed.");
+  // Check if we already have profiles
+  const existingProfiles = await db.select().from(profiles);
+  if (existingProfiles.length > 0) {
+    console.log("Database already has profiles, skipping seed.");
     return;
   }
+  
+  // Check if we already have users to use
+  const existingUsers = await db.select().from(users);
+  let demoUserResult: typeof users.$inferSelect | undefined;
+  let creatorUserResult: typeof users.$inferSelect | undefined;
 
-  // Create seed users
-  const demoUser: InsertUser = {
-    username: "demo",
-    password: await hashPassword("password"),
-    email: "demo@example.com",
-    fullName: "Demo User"
-  };
+  // Create or reuse seed users
+  if (existingUsers.length > 0) {
+    // Reuse existing users
+    demoUserResult = existingUsers.find(u => u.username === "demo")!;
+    creatorUserResult = existingUsers.find(u => u.username === "creator")!;
+    
+    if (!demoUserResult || !creatorUserResult) {
+      console.log("Could not find required seed users, cannot create profiles");
+      return;
+    }
+    
+    console.log("Using existing users:", demoUserResult.id, creatorUserResult.id);
+  } else {
+    // Create new seed users
+    const demoUser: InsertUser = {
+      username: "demo",
+      password: await hashPassword("password"),
+      email: "demo@example.com",
+      fullName: "Demo User"
+    };
 
-  const creatorUser: InsertUser = {
-    username: "creator",
-    password: await hashPassword("password"),
-    email: "creator@example.com",
-    fullName: "Content Creator"
-  };
+    const creatorUser: InsertUser = {
+      username: "creator",
+      password: await hashPassword("password"),
+      email: "creator@example.com",
+      fullName: "Content Creator"
+    };
 
-  const [demoUserResult, creatorUserResult] = await db.insert(users)
-    .values([demoUser, creatorUser])
-    .returning();
+    [demoUserResult, creatorUserResult] = await db.insert(users)
+      .values([demoUser, creatorUser])
+      .returning();
 
-  console.log("Created seed users:", demoUserResult.id, creatorUserResult.id);
+    console.log("Created seed users:", demoUserResult.id, creatorUserResult.id);
+  }
 
   // Get platform IDs from the database
   // The platforms are already added by the initializeData function

@@ -8,8 +8,13 @@ import {
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
+import { db } from "./db";
+import { pool } from "./db";
+import { eq, and, desc, inArray, or } from "drizzle-orm";
 
 const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   // User operations
@@ -48,222 +53,165 @@ export interface IStorage {
   createMessage(message: InsertMessage): Promise<Message>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Use any type for session store to avoid complex type issues
 }
 
-export class MemStorage implements IStorage {
-  // Maps to store data
-  private usersMap: Map<number, User>;
-  private platformsMap: Map<number, Platform>;
-  private categoriesMap: Map<number, Category>;
-  private profilesMap: Map<number, Profile>;
-  private watchlistMap: Map<number, Watchlist>;
-  private messagesMap: Map<number, Message>;
-  
-  // Auto-increment IDs
-  private userNextId: number;
-  private platformNextId: number;
-  private categoryNextId: number;
-  private profileNextId: number;
-  private watchlistNextId: number;
-  private messageNextId: number;
-  
-  // Session store
-  sessionStore: session.SessionStore;
+export class DatabaseStorage implements IStorage {
+  sessionStore: any;
 
   constructor() {
-    this.usersMap = new Map();
-    this.platformsMap = new Map();
-    this.categoriesMap = new Map();
-    this.profilesMap = new Map();
-    this.watchlistMap = new Map();
-    this.messagesMap = new Map();
-    
-    this.userNextId = 1;
-    this.platformNextId = 1;
-    this.categoryNextId = 1;
-    this.profileNextId = 1;
-    this.watchlistNextId = 1;
-    this.messageNextId = 1;
-    
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
+    this.sessionStore = new PostgresSessionStore({ 
+      pool,
+      createTableIfMissing: true,
     });
   }
 
   // User operations
   async getUser(id: number): Promise<User | undefined> {
-    return this.usersMap.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.usersMap.values()).find(
-      (user) => user.username.toLowerCase() === username.toLowerCase()
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.usersMap.values()).find(
-      (user) => user.email.toLowerCase() === email.toLowerCase()
-    );
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userNextId++;
-    const createdAt = new Date();
-    const user: User = { 
-      ...insertUser, 
-      id, 
-      createdAt,
-      avatarUrl: null 
-    };
-    
-    this.usersMap.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   // Platform operations
   async getPlatformByName(name: string): Promise<Platform | undefined> {
-    return Array.from(this.platformsMap.values()).find(
-      (platform) => platform.name.toLowerCase() === name.toLowerCase()
-    );
+    const [platform] = await db.select().from(platforms).where(eq(platforms.name, name));
+    return platform;
   }
 
   async getAllPlatforms(): Promise<Platform[]> {
-    return Array.from(this.platformsMap.values());
+    return await db.select().from(platforms);
   }
 
   async createPlatform(insertPlatform: InsertPlatform): Promise<Platform> {
-    const id = this.platformNextId++;
-    const platform: Platform = { ...insertPlatform, id };
-    
-    this.platformsMap.set(id, platform);
+    const [platform] = await db.insert(platforms).values(insertPlatform).returning();
     return platform;
   }
 
   // Category operations
   async getCategoryByName(name: string): Promise<Category | undefined> {
-    return Array.from(this.categoriesMap.values()).find(
-      (category) => category.name.toLowerCase() === name.toLowerCase()
-    );
+    const [category] = await db.select().from(categories).where(eq(categories.name, name));
+    return category;
   }
 
   async getAllCategories(): Promise<Category[]> {
-    return Array.from(this.categoriesMap.values());
+    return await db.select().from(categories);
   }
 
   async createCategory(insertCategory: InsertCategory): Promise<Category> {
-    const id = this.categoryNextId++;
-    const category: Category = { ...insertCategory, id };
-    
-    this.categoriesMap.set(id, category);
+    const [category] = await db.insert(categories).values(insertCategory).returning();
     return category;
   }
 
   // Profile operations
   async getProfileById(id: number): Promise<Profile | undefined> {
-    return this.profilesMap.get(id);
+    const [profile] = await db.select().from(profiles).where(eq(profiles.id, id));
+    return profile;
   }
 
   async getAllProfiles(): Promise<Profile[]> {
-    return Array.from(this.profilesMap.values());
+    return await db.select().from(profiles);
   }
 
   async getFeaturedProfiles(): Promise<Profile[]> {
-    return Array.from(this.profilesMap.values()).filter(
-      (profile) => profile.isFeatured
-    );
+    return await db.select().from(profiles).where(eq(profiles.isFeatured, true));
   }
 
   async getProfilesByPlatform(platformId: number): Promise<Profile[]> {
-    return Array.from(this.profilesMap.values()).filter(
-      (profile) => profile.platformId === platformId
-    );
+    return await db.select().from(profiles).where(eq(profiles.platformId, platformId));
   }
 
   async getProfilesByCategory(categoryId: number): Promise<Profile[]> {
-    return Array.from(this.profilesMap.values()).filter(
-      (profile) => profile.categoryId === categoryId
-    );
+    return await db.select().from(profiles).where(eq(profiles.categoryId, categoryId));
   }
 
   async getUserProfiles(userId: number): Promise<Profile[]> {
-    return Array.from(this.profilesMap.values()).filter(
-      (profile) => profile.userId === userId
-    );
+    return await db.select().from(profiles).where(eq(profiles.userId, userId));
   }
 
   async createProfile(insertProfile: InsertProfile): Promise<Profile> {
-    const id = this.profileNextId++;
-    const createdAt = new Date();
-    const profile: Profile = { 
-      ...insertProfile, 
-      id, 
-      createdAt 
-    };
-    
-    this.profilesMap.set(id, profile);
+    const [profile] = await db.insert(profiles).values(insertProfile).returning();
     return profile;
   }
 
   // Watchlist operations
   async getUserWatchlist(userId: number): Promise<Profile[]> {
-    const watchlistItems = Array.from(this.watchlistMap.values()).filter(
-      (item) => item.userId === userId
-    );
+    // First get all watchlist items for the user
+    const watchlistItems = await db.select().from(watchlist).where(eq(watchlist.userId, userId));
+    
+    // Then fetch all the profiles from the watchlist
+    if (watchlistItems.length === 0) return [];
     
     const profileIds = watchlistItems.map(item => item.profileId);
-    return Array.from(this.profilesMap.values()).filter(
-      (profile) => profileIds.includes(profile.id)
-    );
+    const watchlistProfiles = await db.select()
+      .from(profiles)
+      .where(inArray(profiles.id, profileIds));
+      
+    return watchlistProfiles;
   }
 
   async getWatchlistItem(userId: number, profileId: number): Promise<Watchlist | undefined> {
-    return Array.from(this.watchlistMap.values()).find(
-      (item) => item.userId === userId && item.profileId === profileId
-    );
+    const [item] = await db.select()
+      .from(watchlist)
+      .where(and(
+        eq(watchlist.userId, userId),
+        eq(watchlist.profileId, profileId)
+      ));
+    
+    return item;
   }
 
   async addToWatchlist(insertWatchlist: InsertWatchlist): Promise<Watchlist> {
-    const id = this.watchlistNextId++;
-    const createdAt = new Date();
-    const watchlistItem: Watchlist = { 
-      ...insertWatchlist, 
-      id, 
-      createdAt 
-    };
+    const [item] = await db.insert(watchlist)
+      .values(insertWatchlist)
+      .returning();
     
-    this.watchlistMap.set(id, watchlistItem);
-    return watchlistItem;
+    return item;
   }
 
   async removeFromWatchlist(userId: number, profileId: number): Promise<void> {
-    const watchlistItem = await this.getWatchlistItem(userId, profileId);
-    if (watchlistItem) {
-      this.watchlistMap.delete(watchlistItem.id);
-    }
+    await db.delete(watchlist)
+      .where(and(
+        eq(watchlist.userId, userId),
+        eq(watchlist.profileId, profileId)
+      ));
   }
 
   // Message operations
   async getUserMessages(userId: number): Promise<Message[]> {
-    return Array.from(this.messagesMap.values()).filter(
-      (message) => message.toUserId === userId || message.fromUserId === userId
-    );
+    return await db.select()
+      .from(messages)
+      .where(
+        or(
+          eq(messages.fromUserId, userId),
+          eq(messages.toUserId, userId)
+        )
+      )
+      .orderBy(desc(messages.createdAt));
   }
 
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const id = this.messageNextId++;
-    const createdAt = new Date();
-    const message: Message = { 
-      ...insertMessage, 
-      id, 
-      read: false, 
-      createdAt 
-    };
+    const [message] = await db.insert(messages)
+      .values(insertMessage)
+      .returning();
     
-    this.messagesMap.set(id, message);
     return message;
   }
 }
 
-export const storage = new MemStorage();
+// Use DatabaseStorage
+export const storage = new DatabaseStorage();

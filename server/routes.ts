@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
+import { seedDatabase } from "./seed";
 import { 
   insertProfileSchema, 
   insertWatchlistSchema, 
@@ -16,8 +17,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
 
-  // Initialize default data
+  // Initialize default data and seed the database
   await initializeData();
+  await seedDatabase();
 
   // Platform routes
   app.get("/api/platforms", async (req, res) => {

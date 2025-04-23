@@ -60,24 +60,27 @@ export async function seedDatabase() {
     return;
   }
 
-  // Create categories if they don't exist
-  const requiredCategories = ["Fashion", "Tech", "Food"];
+  // Map category names to match those in initializeData
+  const categoryMapping = {
+    "Fashion": "Fashion & Beauty",
+    "Tech": "Technology", 
+    "Food": "Food"
+  };
+  
   const categoryEntities = [];
 
-  for (const categoryName of requiredCategories) {
+  for (const [categoryKey, categoryName] of Object.entries(categoryMapping)) {
     // Check if category exists
     const [existingCategory] = await db.select()
       .from(categories)
       .where(eq(categories.name, categoryName));
     
     if (existingCategory) {
+      console.log(`Found category: ${existingCategory.name}`);
       categoryEntities.push(existingCategory);
     } else {
-      // Create if doesn't exist
-      const [newCategory] = await db.insert(categories)
-        .values({ name: categoryName })
-        .returning();
-      categoryEntities.push(newCategory);
+      console.log(`Category not found: ${categoryName}`);
+      return; // Exit if categories aren't found
     }
   }
 
